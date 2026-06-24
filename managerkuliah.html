@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen Tugas Kuliahkuuu</title>
+    <style>
+        /* --- CSS STYLING --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        /* Styling Pilihan Semester */
+        .semester-selector-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .semester-selector-box label {
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .semester-select {
+            padding: 6px 12px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 5px;
+            border: 2px solid #3498db;
+            color: #2c3e50;
+            cursor: pointer;
+        }
+
+        /* Form Input Utama */
+        .form-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 10px 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        /* Struktur Card Folder Matkul */
+        .matkul-card {
+            background: #ecf0f1;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            border-left: 5px solid #3498db;
+        }
+
+        .matkul-header {
+            padding: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            background: #dfe6e9;
+            user-select: none;
+        }
+
+        /* Roll Turun Ke Bawah (Pertemuan) */
+        .pertemuan-list {
+            display: none;
+            padding: 10px 15px;
+            background: #fff;
+            border-top: 1px solid #dcdde1;
+        }
+
+        .action-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .btn-add-sub {
+            background-color: #2ecc71;
+            font-size: 12px;
+            padding: 5px 10px;
+        }
+
+        .btn-add-sub:hover {
+            background-color: #27ae60;
+        }
+
+        .btn-delete {
+            background-color: #e74c3c;
+            font-size: 11px;
+            padding: 4px 8px;
+        }
+
+        .btn-delete:hover {
+            background-color: #c0392b;
+        }
+
+        /* Detail Isi Pertemuan */
+        .pertemuan-item {
+            border-bottom: 1px dashed #ccc;
+            padding: 12px 0;
+            position: relative;
+        }
+
+        .pertemuan-main {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .pertemuan-title {
+            font-weight: 600;
+            color: #2c3e50;
+            max-width: 80%;
+        }
+
+        .pertemuan-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-mini {
+            border: none;
+            padding: 3px 6px;
+            font-size: 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .btn-mini-edit { background-color: #f39c12; }
+        .btn-mini-edit:hover { background-color: #d35400; }
+        .btn-mini-del { background-color: #e74c3c; }
+        .btn-mini-del:hover { background-color: #c0392b; }
+
+        .meta-info {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin: 3px 0;
+        }
+
+        .tugas-box {
+            background: #fff8dc;
+            padding: 8px;
+            border-radius: 4px;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .done {
+            text-decoration: line-through;
+            color: #95a5a6;
+        }
+
+        .catatan-box {
+            font-size: 13px;
+            background: #f9f9f9;
+            padding: 8px;
+            border-left: 3px solid #3498db;
+            margin-top: 5px;
+            border-radius: 0 4px 4px 0;
+        }
+
+        /* Styling Tombol Link File Google Drive */
+        .file-link {
+            display: inline-block;
+            margin-top: 5px;
+            background-color: #e1f5fe;
+            color: #0288d1;
+            padding: 4px 10px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 12px;
+            border: 1px solid #b3e5fc;
+        }
+
+        .file-link:hover {
+            background-color: #b3e5fc;
+            color: #01579b;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>📚 My Class Manager</h2>
+        
+        <div class="semester-selector-box">
+            <label for="selectSemester">Pilih Periode:</label>
+            <select id="selectSemester" class="semester-select" onchange="gantiSemester()">
+                <option value="Semester 1">Semester 1</option>
+                <option value="Semester 2" selected>Semester 2</option>
+                <option value="Semester 3">Semester 3</option>
+                <option value="Semester 4">Semester 4</option>
+                <option value="Semester 5">Semester 5</option>
+                <option value="Semester 6">Semester 6</option>
+                <option value="Semester 7">Semester 7</option>
+                <option value="Semester 8">Semester 8</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <input type="text" id="inputMatkul" placeholder="Masukkan Nama Matkul Baru (Misal: Alpro)...">
+            <button onclick="tambahMatkul()">+ Buat Folder</button>
+        </div>
+
+        <div id="daftarMatkul"></div>
+    </div>
+
+    <script>
+        // --- JAVASCRIPT LOGIC ---
+        let dataAplikasi = [];
+        let semesterAktif = "Semester 2";
+
+        // Fungsi Load Data Awal saat Web Dibuka
+        window.onload = function() {
+            const dataLokal = localStorage.getItem('classManagerData');
+            const semLokal = localStorage.getItem('classManagerActiveSemester');
+            
+            if (dataLokal) dataAplikasi = JSON.parse(dataLokal);
+            if (semLokal) {
+                semesterAktif = semLokal;
+                document.getElementById('selectSemester').value = semesterAktif;
+            }
+            renderTampilan();
+        };
+
+        // Fungsi Simpan Data ke Penyimpanan Lokal Browser
+        function simpanKeStorage() {
+            localStorage.setItem('classManagerData', JSON.stringify(dataAplikasi));
+            localStorage.setItem('classManagerActiveSemester', semesterAktif);
+        }
+
+        // Fungsi Ganti Semester di Dropdown
+        function gantiSemester() {
+            semesterAktif = document.getElementById('selectSemester').value;
+            simpanKeStorage();
+            renderTampilan();
+        }
+
+        // Fungsi Tambah Folder Matkul Baru
+        function tambahMatkul() {
+            const input = document.getElementById('inputMatkul');
+            const namaMatkul = input.value.trim();
+
+            if (namaMatkul === "") {
+                alert("Nama Mata Kuliah tidak boleh kosong!");
+                return;
+            }
+
+            const objekMatkulBaru = {
+                id: Date.now(),
+                semester: semesterAktif,
+                nama: namaMatkul,
+                pertemuan: []
+            };
+
+            dataAplikasi.push(objekMatkulBaru);
+            simpanKeStorage();
+            renderTampilan();
+            input.value = "";
+        }
+
+        // Fungsi Tambah Pertemuan Kuliah
+        function tambahPertemuan(matkulId) {
+            const nomorPrt = prompt("Pertemuan ke berapa? (Contoh: 3)");
+            if (!nomorPrt) return;
+
+            const materi = prompt("Materinya apa? (Contoh: Sorting Bubble)");
+            if (!materi) return;
+
+            const hariTgl = prompt("Hari / Tanggal? (Contoh: Senin, 5 Juni)");
+            if (!hariTgl) return;
+
+            const tugas = prompt("Tugasnya apa? (Kosongkan jika tidak ada)");
+            const catatan = prompt("Ketik catatan biasa ATAU Paste Link Google Drive file PPT/PDF:");
+
+            const matkul = dataAplikasi.find(m => m.id === matkulId);
+            
+            if (matkul) {
+                matkul.pertemuan.push({
+                    id: Date.now(),
+                    nomor: nomorPrt,
+                    materi: materi,
+                    tanggal: hariTgl,
+                    tugas: tugas || null,
+                    tugasSelesai: false,
+                    catatan: catatan || null
+                });
+
+                simpanKeStorage();
+                renderTampilan();
+                bukaFolderOtomatis(matkulId);
+            }
+        }
+
+        // Fungsi Hapus Satu Pertemuan Tertentu
+        function hapusPertemuan(matkulId, pertemuanId) {
+            if (confirm("Apakah kamu yakin ingin menghapus data pertemuan ini?")) {
+                const matkul = dataAplikasi.find(m => m.id === matkulId);
+                if (matkul) {
+                    matkul.pertemuan = matkul.pertemuan.filter(p => p.id !== pertemuanId);
+                    simpanKeStorage();
+                    renderTampilan();
+                    bukaFolderOtomatis(matkulId);
+                }
+            }
+        }
+
+        // Fungsi Edit Data Pertemuan
+        function editPertemuan(matkulId, pertemuanId) {
+            const matkul = dataAplikasi.find(m => m.id === matkulId);
+            if (!matkul) return;
+            
+            const prt = matkul.pertemuan.find(p => p.id === pertemuanId);
+            if (!prt) return;
+
+            const materiBaru = prompt("Edit Materi:", prt.materi);
+            if (materiBaru === null) return;
+
+            const tglBaru = prompt("Edit Hari/Tanggal:", prt.tanggal);
+            if (tglBaru === null) return;
+
+            const tugasBaru = prompt("Edit Tugas:", prt.tugas || "");
+            const catatanBaru = prompt("Edit Catatan/Link Google Drive:", prt.catatan || "");
+
+            prt.materi = materiBaru;
+            prt.tanggal = tglBaru;
+            prt.tugas = tugasBaru || null;
+            prt.catatan = catatanBaru || null;
+
+            simpanKeStorage();
+            renderTampilan();
+            bukaFolderOtomatis(matkulId);
+        }
+
+        // Fungsi Checklist Tugas Selesai
+        function ubahStatusTugas(matkulId, pertemuanId, checkbox) {
+            const matkul = dataAplikasi.find(m => m.id === matkulId);
+            if (matkul) {
+                const prt = matkul.pertemuan.find(p => p.id === pertemuanId);
+                if (prt) {
+                    prt.tugasSelesai = checkbox.checked;
+                    simpanKeStorage();
+                    const teksTugas = checkbox.nextElementSibling;
+                    teksTugas.className = checkbox.checked ? 'done' : '';
+                }
+            }
+        }
+
+        // Fungsi Hapus Satu Folder Matkul Utuh
+        function hapusMatkul(matkulId) {
+            if (confirm("Apakah kamu yakin ingin menghapus folder matkul ini beserta seluruh isinya?")) {
+                dataAplikasi = dataAplikasi.filter(m => m.id !== matkulId);
+                simpanKeStorage();
+                renderTampilan();
+            }
+        }
+
+        // Fungsi Efek Roll Naik/Turun (Accordion)
+        function toggleRollDown(headerElement) {
+            const listPertemuan = headerElement.nextElementSibling;
+            const panah = headerElement.querySelector('span');
+            
+            if (listPertemuan.style.display === "block") {
+                listPertemuan.style.display = "none";
+                panah.innerText = "▼";
+            } else {
+                listPertemuan.style.display = "block";
+                panah.innerText = "▲";
+            }
+        }
+
+        // Fungsi Helper untuk Otomatis Membuka Folder setelah Data Diupdate
+        function bukaFolderOtomatis(matkulId) {
+            const header = document.querySelector(`[data-id="${matkulId}"]`);
+            if (header) {
+                const listPertemuan = header.nextElementSibling;
+                const panah = header.querySelector('span');
+                listPertemuan.style.display = "block";
+                panah.innerText = "▲";
+            }
+        }
+
+        // Fungsi Otomatis Format Teks Menjadi Tombol Link Jika Mengandung Link Internet/Drive
+        function formatCatatanKeHTML(teksCatatan) {
+            if (!teksCatatan) return "";
+
+            const inputTrim = teksCatatan.trim();
+            // Mengecek apakah teks berupa link web (http/https) atau jalur lokal komputer (C:/ atau D:/)
+            if (inputTrim.startsWith("http://") || inputTrim.startsWith("https://") || inputTrim.match(/^[a-zA-Z]:\/+/)) {
+                return `
+                    <div class="catatan-box">
+                        📌 <strong>Aset Materi Kuliah:</strong> <br>
+                        <a href="${inputTrim}" target="_blank" class="file-link">📁 Buka / Download File</a>
+                    </div>
+                `;
+            }
+
+            // Jika hanya tulisan biasa
+            return `
+                <div class="catatan-box">
+                    📌 <strong>Catatan:</strong> ${teksCatatan}
+                </div>
+            `;
+        }
+
+        // Fungsi Mengubah Struktur Data Menjadi Tampilan Visual HTML
+        function renderTampilan() {
+            const daftarMatkulContainer = document.getElementById('daftarMatkul');
+            daftarMatkulContainer.innerHTML = ""; 
+
+            // Mem-filter matkul: hanya tampilkan yang sesuai dengan semester terpilih
+            const matkulTerfilter = dataAplikasi.filter(m => m.semester === semesterAktif);
+
+            matkulTerfilter.forEach(matkul => {
+                const card = document.createElement('div');
+                card.className = 'matkul-card';
+
+                let infoPertemuanHTML = "";
+                matkul.pertemuan.forEach(prt => {
+                    let tugasHTML = "";
+                    if (prt.tugas) {
+                        tugasHTML = `
+                            <div class="tugas-box">
+                                <input type="checkbox" ${prt.tugasSelesai ? 'checked' : ''} onchange="ubahStatusTugas(${matkul.id}, ${prt.id}, this)">
+                                <span class="${prt.tugasSelesai ? 'done' : ''}"><strong>Tugas:</strong> ${prt.tugas}</span>
+                            </div>
+                        `;
+                    }
+
+                    let catatanHTML = formatCatatanKeHTML(prt.catatan);
+
+                    infoPertemuanHTML += `
+                        <div class="pertemuan-item">
+                            <div class="pertemuan-main">
+                                <div class="pertemuan-title">Pertemuan ${prt.nomor}: ${prt.materi}</div>
+                                <div class="pertemuan-actions">
+                                    <button class="btn-mini btn-mini-edit" onclick="editPertemuan(${matkul.id}, ${prt.id})">✏️ Edit</button>
+                                    <button class="btn-mini btn-mini-del" onclick="hapusPertemuan(${matkul.id}, ${prt.id})">🗑️ Hapus</button>
+                                </div>
+                            </div>
+                            <div class="meta-info">📅 ${prt.tanggal}</div>
+                            ${tugasHTML}
+                            ${catatanHTML}
+                        </div>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div class="matkul-header" data-id="${matkul.id}" onclick="toggleRollDown(this)">
+                        📁 ${matkul.nama} <span>▼</span>
+                    </div>
+                    <div class="pertemuan-list">
+                        <div class="action-header">
+                            <button class="btn-add-sub" onclick="tambahPertemuan(${matkul.id})">+ Tambah Pertemuan</button>
+                            <button class="btn-delete" onclick="hapusMatkul(${matkul.id})">Hapus Folder Matkul</button>
+                        </div>
+                        <div class="pertemuan-container">
+                            ${infoPertemuanHTML || '<p style="color:#aaa; font-size:13px; text-align:center;">Belum ada data pertemuan di semester ini.</p>'}
+                        </div>
+                    </div>
+                `;
+
+                daftarMatkulContainer.appendChild(card);
+            });
+        }
+    </script>
+</body>
+</html>
