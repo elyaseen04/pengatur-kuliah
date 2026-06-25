@@ -125,6 +125,7 @@
             border: 1px solid #ccc;
             border-radius: 5px;
             font-size: 14px;
+            box-sizing: border-box;
         }
 
         button {
@@ -336,7 +337,7 @@
             border-left: 3px solid #e74c3c;
         }
 
-        /* MODAL BARU UNTUK INPUT/EDIT DATA PERTEMUAN (PENGGANTI PROMPT) */
+        /* FORM INPUT/EDIT DATA PERTEMUAN DENGAN KALENDER */
         .modal-form-group {
             margin-bottom: 12px;
             display: flex;
@@ -358,17 +359,15 @@
 </head>
 <body>
 
-    <!-- MODAL POPUP WARNING DEADLINE -->
     <div id="popupDeadline" class="modal-overlay">
         <div class="modal-box">
             <span class="modal-close" onclick="tutupPopup()">✖️</span>
             <h3 class="modal-title">⚠️ Deadline Sangat Dekat!</h3>
-            <p style="font-size: 13px; color:#555;">Tugas berikut belum selesai dan deadlinenya tinggal 3 hari atau kurang:</p>
+            <p style="font-size: 13px; color:#555;">Tugas berikut belum selesai dan deadlinenya tinggal 3 days atau kurang:</p>
             <div id="kontenPopup"></div>
         </div>
     </div>
 
-    <!-- MODAL BARU: KALENDER DAN FORM PERTEMUAN (PENGGANTI PROMPT) -->
     <div id="modalFormPertemuan" class="modal-overlay">
         <div class="modal-box" style="border-top-color: #2ecc71;">
             <span class="modal-close" onclick="tutupModalForm()">✖️</span>
@@ -385,18 +384,19 @@
                 <label for="formMateri">Nama Materi Kuliah</label>
                 <input type="text" id="formMateri" placeholder="Contoh: Sorting Bubble">
             </div>
+            
             <div class="modal-form-group">
-                <label for="formTanggalKelas">Hari / Tanggal Kelas</label>
-                <input type="text" id="formTanggalKelas" placeholder="Contoh: Senin, 5 Juni">
+                <label for="formTanggalKelas">📅 Pilih Tanggal Kelas</label>
+                <input type="date" id="formTanggalKelas">
             </div>
+            
             <div class="modal-form-group">
                 <label for="formTugas">Nama Tugas (Kosongkan jika tidak ada)</label>
                 <input type="text" id="formTugas" placeholder="Contoh: Mengerjakan modul hal 10" oninput="toggleFormDeadline()">
             </div>
             
-            <!-- Elemen Input Kalender -->
             <div class="modal-form-group" id="groupFormDeadline" style="display: none;">
-                <label for="formDeadline">📅 Pilih Batas Akhir (Deadline Tugas)</label>
+                <label for="formDeadline">⏰ Pilih Batas Akhir (Deadline Tugas)</label>
                 <input type="date" id="formDeadline">
             </div>
             
@@ -496,13 +496,11 @@
             input.value = "";
         }
 
-        /* --- LOGIKA BARU MODAL FORM (PENGGANTI PROMPT LAMA) --- */
         function bukaModalTambahPertemuan(matkulId) {
             document.getElementById('modalFormTitle').innerText = "➕ Tambah Data Pertemuan";
             document.getElementById('formMatkulId').value = matkulId;
-            document.getElementById('formPertemuanId').value = ""; // Kosong berarti mode tambah baru
+            document.getElementById('formPertemuanId').value = "";
             
-            // Reset isi input
             document.getElementById('formNomor').value = "";
             document.getElementById('formMateri').value = "";
             document.getElementById('formTanggalKelas').value = "";
@@ -522,11 +520,11 @@
 
             document.getElementById('modalFormTitle').innerText = "✏️ Edit Data Pertemuan";
             document.getElementById('formMatkulId').value = matkulId;
-            document.getElementById('formPertemuanId').value = pertemuanId; // Berisi ID berarti mode edit
+            document.getElementById('formPertemuanId').value = pertemuanId;
 
             document.getElementById('formNomor').value = prt.nomor;
             document.getElementById('formMateri').value = prt.materi;
-            document.getElementById('formTanggalKelas').value = prt.tanggal;
+            document.getElementById('formTanggalKelas').value = prt.tanggal || "";
             document.getElementById('formTugas').value = prt.tugas || "";
             document.getElementById('formDeadline').value = prt.tugasDeadline || "";
             document.getElementById('formCatatan').value = prt.catatan || "";
@@ -556,13 +554,13 @@
 
             const nomor = document.getElementById('formNomor').value.trim();
             const materi = document.getElementById('formMateri').value.trim();
-            const tanggal = document.getElementById('formTanggalKelas').value.trim();
+            const tanggal = document.getElementById('formTanggalKelas').value; // Mengambil string tanggal YYYY-MM-DD
             const tugas = document.getElementById('formTugas').value.trim();
             const deadline = document.getElementById('formDeadline').value;
             const catatan = document.getElementById('formCatatan').value.trim();
 
             if (!nomor || !materi || !tanggal) {
-                alert("Kolom Pertemuan, Materi, dan Tanggal Kelas wajib diisi!");
+                alert("Kolom Pertemuan, Materi, dan Tanggal Kelas wajib diisi lewat kalender!");
                 return;
             }
 
@@ -570,7 +568,6 @@
             if (!matkul) return;
 
             if (pertemuanId === "") {
-                // PROSES SIMPAN DATA BARU
                 matkul.pertemuan.push({
                     id: Date.now(),
                     nomor: nomor,
@@ -582,7 +579,6 @@
                     catatan: catatan || null
                 });
             } else {
-                // PROSES UPDATE DATA EDIT
                 const prt = matkul.pertemuan.find(p => p.id === parseInt(pertemuanId));
                 if (prt) {
                     prt.nomor = nomor;
@@ -816,7 +812,6 @@
                             <div class="pertemuan-main">
                                 <div class="pertemuan-title">Pertemuan ${prt.nomor}: ${prt.materi}</div>
                                 <div class="pertemuan-actions">
-                                    <!-- PERUBAHAN DISINI: Membuka modal form alih-alih prompt -->
                                     <button class="btn-mini btn-mini-edit" onclick="bukaModalEditPertemuan(${matkul.id}, ${prt.id})">✏️ Edit</button>
                                     <button class="btn-mini btn-mini-del" onclick="hapusPertemuan(${matkul.id}, ${prt.id})">🗑️ Hapus</button>
                                 </div>
@@ -834,7 +829,6 @@
                     </div>
                     <div class="pertemuan-list">
                         <div class="action-header">
-                            <!-- PERUBAHAN DISINI: Membuka modal form alih-alih prompt -->
                             <button class="btn-add-sub" onclick="bukaModalTambahPertemuan(${matkul.id})">+ Tambah Pertemuan</button>
                             <button class="btn-delete" onclick="hapusMatkul(${matkul.id})">Hapus Folder Matkul</button>
                         </div>
