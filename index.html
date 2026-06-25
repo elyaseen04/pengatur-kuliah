@@ -57,7 +57,7 @@
             cursor: pointer;
         }
 
-        /* --- PERBAIKAN POIN 1 & 4: STYLING DASHBOARD TUGAS --- */
+        /* STYLING DASHBOARD TUGAS */
         .task-dashboard {
             background: #fff5f5;
             border: 1px solid #ffcccc;
@@ -80,12 +80,11 @@
             user-select: none;
         }
 
-        /* Solusi Poin 4: Membatasi tinggi biar tidak molor kebawah, gunakan scrollbar */
         .task-list {
             padding: 12px;
             max-height: 220px; 
             overflow-y: auto; 
-            display: block; /* Default awal terbuka */
+            display: block;
         }
 
         .task-item {
@@ -120,7 +119,7 @@
             margin-bottom: 20px;
         }
 
-        input[type="text"] {
+        input[type="text"], input[type="date"] {
             flex: 1;
             padding: 10px;
             border: 1px solid #ccc;
@@ -288,7 +287,7 @@
             color: #01579b;
         }
 
-        /* --- STYLING MODAL POPUP --- */
+        /* MODAL POPUP GLOBAL */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -336,16 +335,80 @@
             font-size: 13px;
             border-left: 3px solid #e74c3c;
         }
+
+        /* MODAL BARU UNTUK INPUT/EDIT DATA PERTEMUAN (PENGGANTI PROMPT) */
+        .modal-form-group {
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .modal-form-group label {
+            font-size: 13px;
+            font-weight: bold;
+            color: #495057;
+        }
+        .modal-form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 15px;
+        }
     </style>
 </head>
 <body>
 
+    <!-- MODAL POPUP WARNING DEADLINE -->
     <div id="popupDeadline" class="modal-overlay">
         <div class="modal-box">
             <span class="modal-close" onclick="tutupPopup()">✖️</span>
             <h3 class="modal-title">⚠️ Deadline Sangat Dekat!</h3>
             <p style="font-size: 13px; color:#555;">Tugas berikut belum selesai dan deadlinenya tinggal 3 hari atau kurang:</p>
             <div id="kontenPopup"></div>
+        </div>
+    </div>
+
+    <!-- MODAL BARU: KALENDER DAN FORM PERTEMUAN (PENGGANTI PROMPT) -->
+    <div id="modalFormPertemuan" class="modal-overlay">
+        <div class="modal-box" style="border-top-color: #2ecc71;">
+            <span class="modal-close" onclick="tutupModalForm()">✖️</span>
+            <h3 id="modalFormTitle" style="color: #27ae60; margin-top:0;">📝 Data Pertemuan</h3>
+            
+            <input type="hidden" id="formMatkulId">
+            <input type="hidden" id="formPertemuanId">
+
+            <div class="modal-form-group">
+                <label for="formNomor">Pertemuan Keberapa?</label>
+                <input type="text" id="formNomor" placeholder="Contoh: 3">
+            </div>
+            <div class="modal-form-group">
+                <label for="formMateri">Nama Materi Kuliah</label>
+                <input type="text" id="formMateri" placeholder="Contoh: Sorting Bubble">
+            </div>
+            <div class="modal-form-group">
+                <label for="formTanggalKelas">Hari / Tanggal Kelas</label>
+                <input type="text" id="formTanggalKelas" placeholder="Contoh: Senin, 5 Juni">
+            </div>
+            <div class="modal-form-group">
+                <label for="formTugas">Nama Tugas (Kosongkan jika tidak ada)</label>
+                <input type="text" id="formTugas" placeholder="Contoh: Mengerjakan modul hal 10" oninput="toggleFormDeadline()">
+            </div>
+            
+            <!-- Elemen Input Kalender -->
+            <div class="modal-form-group" id="groupFormDeadline" style="display: none;">
+                <label for="formDeadline">📅 Pilih Batas Akhir (Deadline Tugas)</label>
+                <input type="date" id="formDeadline">
+            </div>
+            
+            <div class="modal-form-group">
+                <label for="formCatatan">Catatan / Link Google Drive</label>
+                <input type="text" id="formCatatan" placeholder="Tulis catatan atau paste link materi">
+            </div>
+
+            <div class="modal-form-actions">
+                <button type="button" style="background-color: #95a5a6;" onclick="tutupModalForm()">Batal</button>
+                <button type="button" style="background-color: #2ecc71;" onclick="simpanFormPertemuan()">Simpan Data</button>
+            </div>
         </div>
     </div>
 
@@ -433,43 +496,108 @@
             input.value = "";
         }
 
-        function tambahPertemuan(matkulId) {
-            const nomorPrt = prompt("Pertemuan ke berapa? (Contoh: 3)");
-            if (!nomorPrt) return;
-
-            const materi = prompt("Materinya apa? (Contoh: Sorting Bubble)");
-            if (!materi) return;
-
-            const hariTgl = prompt("Hari / Tanggal Kelas? (Contoh: Senin, 5 Juni)");
-            if (!hariTgl) return;
-
-            const tugas = prompt("Tugasnya apa? (Kosongkan jika tidak ada)");
+        /* --- LOGIKA BARU MODAL FORM (PENGGANTI PROMPT LAMA) --- */
+        function bukaModalTambahPertemuan(matkulId) {
+            document.getElementById('modalFormTitle').innerText = "➕ Tambah Data Pertemuan";
+            document.getElementById('formMatkulId').value = matkulId;
+            document.getElementById('formPertemuanId').value = ""; // Kosong berarti mode tambah baru
             
-            let deadline = null;
-            if (tugas) {
-                deadline = prompt("Masukkan Tanggal Deadline Tugas!\nFormat WAJIB: YYYY-MM-DD (Contoh: 2026-06-28)");
+            // Reset isi input
+            document.getElementById('formNomor').value = "";
+            document.getElementById('formMateri').value = "";
+            document.getElementById('formTanggalKelas').value = "";
+            document.getElementById('formTugas').value = "";
+            document.getElementById('formDeadline').value = "";
+            document.getElementById('groupFormDeadline').style.display = "none";
+            document.getElementById('formCatatan').value = "";
+
+            document.getElementById('modalFormPertemuan').style.display = "flex";
+        }
+
+        function bukaModalEditPertemuan(matkulId, pertemuanId) {
+            const matkul = dataAplikasi.find(m => m.id === matkulId);
+            if (!matkul) return;
+            const prt = matkul.pertemuan.find(p => p.id === pertemuanId);
+            if (!prt) return;
+
+            document.getElementById('modalFormTitle').innerText = "✏️ Edit Data Pertemuan";
+            document.getElementById('formMatkulId').value = matkulId;
+            document.getElementById('formPertemuanId').value = pertemuanId; // Berisi ID berarti mode edit
+
+            document.getElementById('formNomor').value = prt.nomor;
+            document.getElementById('formMateri').value = prt.materi;
+            document.getElementById('formTanggalKelas').value = prt.tanggal;
+            document.getElementById('formTugas').value = prt.tugas || "";
+            document.getElementById('formDeadline').value = prt.tugasDeadline || "";
+            document.getElementById('formCatatan').value = prt.catatan || "";
+
+            toggleFormDeadline();
+            document.getElementById('modalFormPertemuan').style.display = "flex";
+        }
+
+        function toggleFormDeadline() {
+            const tugasVal = document.getElementById('formTugas').value.trim();
+            const groupDeadline = document.getElementById('groupFormDeadline');
+            if (tugasVal !== "") {
+                groupDeadline.style.display = "flex";
+            } else {
+                groupDeadline.style.display = "none";
+                document.getElementById('formDeadline').value = "";
+            }
+        }
+
+        function tutupModalForm() {
+            document.getElementById('modalFormPertemuan').style.display = "none";
+        }
+
+        function simpanFormPertemuan() {
+            const matkulId = parseInt(document.getElementById('formMatkulId').value);
+            const pertemuanId = document.getElementById('formPertemuanId').value;
+
+            const nomor = document.getElementById('formNomor').value.trim();
+            const materi = document.getElementById('formMateri').value.trim();
+            const tanggal = document.getElementById('formTanggalKelas').value.trim();
+            const tugas = document.getElementById('formTugas').value.trim();
+            const deadline = document.getElementById('formDeadline').value;
+            const catatan = document.getElementById('formCatatan').value.trim();
+
+            if (!nomor || !materi || !tanggal) {
+                alert("Kolom Pertemuan, Materi, dan Tanggal Kelas wajib diisi!");
+                return;
             }
 
-            const catatan = prompt("Ketik catatan biasa ATAU Paste Link Google Drive file PPT/PDF:");
-
             const matkul = dataAplikasi.find(m => m.id === matkulId);
-            
-            if (matkul) {
+            if (!matkul) return;
+
+            if (pertemuanId === "") {
+                // PROSES SIMPAN DATA BARU
                 matkul.pertemuan.push({
                     id: Date.now(),
-                    nomor: nomorPrt,
+                    nomor: nomor,
                     materi: materi,
-                    tanggal: hariTgl,
+                    tanggal: tanggal,
                     tugas: tugas || null,
                     tugasDeadline: deadline || null,
                     tugasSelesai: false,
                     catatan: catatan || null
                 });
-
-                simpanKeStorage();
-                renderTampilan();
-                bukaFolderOtomatis(matkulId);
+            } else {
+                // PROSES UPDATE DATA EDIT
+                const prt = matkul.pertemuan.find(p => p.id === parseInt(pertemuanId));
+                if (prt) {
+                    prt.nomor = nomor;
+                    prt.materi = materi;
+                    prt.tanggal = tanggal;
+                    prt.tugas = tugas || null;
+                    prt.tugasDeadline = (tugas) ? deadline || null : null;
+                    prt.catatan = catatan || null;
+                }
             }
+
+            simpanKeStorage();
+            renderTampilan();
+            bukaFolderOtomatis(matkulId);
+            tutupModalForm();
         }
 
         function hapusPertemuan(matkulId, pertemuanId) {
@@ -482,41 +610,6 @@
                     bukaFolderOtomatis(matkulId);
                 }
             }
-        }
-
-        function editPertemuan(matkulId, pertemuanId) {
-            const matkul = dataAplikasi.find(m => m.id === matkulId);
-            if (!matkul) return;
-            
-            const prt = matkul.pertemuan.find(p => p.id === pertemuanId);
-            if (!prt) return;
-
-            const materiBaru = prompt("Edit Materi:", prt.materi);
-            if (materiBaru === null) return;
-
-            const tglBaru = prompt("Edit Hari/Tanggal Kelas:", prt.tanggal);
-            if (tglBaru === null) return;
-
-            const tugasBaru = prompt("Edit Tugas:", prt.tugas || "");
-            
-            let deadlineBaru = prt.tugasDeadline;
-            if(tugasBaru) {
-                deadlineBaru = prompt("Edit Tanggal Deadline Tugas (YYYY-MM-DD):", prt.tugasDeadline || "");
-            } else {
-                deadlineBaru = null;
-            }
-
-            const catatanBaru = prompt("Edit Catatan/Link Google Drive:", prt.catatan || "");
-
-            prt.materi = materiBaru;
-            prt.tanggal = tglBaru;
-            prt.tugas = tugasBaru || null;
-            prt.tugasDeadline = deadlineBaru || null;
-            prt.catatan = catatanBaru || null;
-
-            simpanKeStorage();
-            renderTampilan();
-            bukaFolderOtomatis(matkulId);
         }
 
         function ubahStatusTugas(matkulId, pertemuanId, statusMinta) {
@@ -539,7 +632,6 @@
             }
         }
 
-        // PERBAIKAN POIN 1: Fungsi Buka-Tutup Fitur Tugas Atas
         function toggleTaskDashboard(headerElement) {
             const listTugas = document.getElementById('daftarTugasOtomatis');
             const panah = document.getElementById('panahTask');
@@ -590,14 +682,12 @@
             return `<div class="catatan-box">📌 <strong>Catatan:</strong> ${teksCatatan}</div>`;
         }
 
-        // PERBAIKAN POIN 2: Hanya ambil tugas yang BELUM selesai untuk list atas
         function dapatkanSemuaTugasHanyaSemesterAktif() {
             let kumpulanTugas = [];
             const matkulTerfilter = dataAplikasi.filter(m => m.semester === semesterAktif);
 
             matkulTerfilter.forEach(matkul => {
                 matkul.pertemuan.forEach(prt => {
-                    // Hanya memasukkan tugas jika ada teks tugasnya dan BELUM DICENTANG SELESAI
                     if (prt.tugas && !prt.tugasSelesai) {
                         kumpulanTugas.push({
                             matkulId: matkul.id,
@@ -621,7 +711,6 @@
             return kumpulanTugas;
         }
 
-        // PERBAIKAN POIN 3: Peringatan popup diatur tepat ke <= 3 hari
         function cekDeadlineOtomatisPopup() {
             const hariIni = new Date();
             hariIni.setHours(0,0,0,0);
@@ -637,7 +726,6 @@
                         const selisihWaktu = tglDeadline.getTime() - hariIni.getTime();
                         const selisihHari = Math.ceil(selisihWaktu / (1000 * 3600 * 24));
 
-                        // HANYA dipicu jika deadline berkisar 3 hari kebawah (3, 2, 1, 0 hari atau telat)
                         if (selisihHari <= 3) {
                             let infoHari = selisihHari < 0 ? `TERLAMBAT (${Math.abs(selisihHari)} hari)` : `${selisihHari} hari lagi!`;
                             if(selisihHari === 0) infoHari = "HARI INI DEADLINE!";
@@ -728,7 +816,8 @@
                             <div class="pertemuan-main">
                                 <div class="pertemuan-title">Pertemuan ${prt.nomor}: ${prt.materi}</div>
                                 <div class="pertemuan-actions">
-                                    <button class="btn-mini btn-mini-edit" onclick="editPertemuan(${matkul.id}, ${prt.id})">✏️ Edit</button>
+                                    <!-- PERUBAHAN DISINI: Membuka modal form alih-alih prompt -->
+                                    <button class="btn-mini btn-mini-edit" onclick="bukaModalEditPertemuan(${matkul.id}, ${prt.id})">✏️ Edit</button>
                                     <button class="btn-mini btn-mini-del" onclick="hapusPertemuan(${matkul.id}, ${prt.id})">🗑️ Hapus</button>
                                 </div>
                             </div>
@@ -745,7 +834,8 @@
                     </div>
                     <div class="pertemuan-list">
                         <div class="action-header">
-                            <button class="btn-add-sub" onclick="tambahPertemuan(${matkul.id})">+ Tambah Pertemuan</button>
+                            <!-- PERUBAHAN DISINI: Membuka modal form alih-alih prompt -->
+                            <button class="btn-add-sub" onclick="bukaModalTambahPertemuan(${matkul.id})">+ Tambah Pertemuan</button>
                             <button class="btn-delete" onclick="hapusMatkul(${matkul.id})">Hapus Folder Matkul</button>
                         </div>
                         <div class="pertemuan-container">
