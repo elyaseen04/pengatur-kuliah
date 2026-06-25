@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manajemen Tugas Kuliahkuuu</title>
     <style>
-        /* --- CSS STYLING --- */
+        /* --- CSS STYLING ASLI --- */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f4f6f9;
@@ -55,6 +55,62 @@
             border: 2px solid #3498db;
             color: #2c3e50;
             cursor: pointer;
+        }
+
+        /* --- PERBAIKAN POIN 1 & 4: STYLING DASHBOARD TUGAS --- */
+        .task-dashboard {
+            background: #fff5f5;
+            border: 1px solid #ffcccc;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .task-dashboard-header {
+            background: #ffe3e3;
+            padding: 12px 15px;
+            margin: 0;
+            color: #c0392b;
+            font-size: 15px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        /* Solusi Poin 4: Membatasi tinggi biar tidak molor kebawah, gunakan scrollbar */
+        .task-list {
+            padding: 12px;
+            max-height: 220px; 
+            overflow-y: auto; 
+            display: block; /* Default awal terbuka */
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            margin-bottom: 8px;
+            border-left: 4px solid #e74c3c;
+            font-size: 13px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .task-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .task-deadline {
+            font-size: 11px;
+            font-weight: bold;
+            color: #e74c3c;
         }
 
         /* Form Input Utama */
@@ -189,6 +245,12 @@
             border-radius: 4px;
             margin-top: 5px;
             display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .tugas-row {
+            display: flex;
             align-items: center;
             gap: 10px;
         }
@@ -225,9 +287,67 @@
             background-color: #b3e5fc;
             color: #01579b;
         }
+
+        /* --- STYLING MODAL POPUP --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            position: relative;
+            border-top: 6px solid #e74c3c;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 10px; right: 15px;
+            font-size: 20px;
+            cursor: pointer;
+            color: #aaa;
+            user-select: none;
+        }
+
+        .modal-close:hover { color: #333; }
+        .modal-title {
+            color: #c0392b;
+            margin-top: 0;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .modal-item {
+            background: #fff5f5;
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            font-size: 13px;
+            border-left: 3px solid #e74c3c;
+        }
     </style>
 </head>
 <body>
+
+    <div id="popupDeadline" class="modal-overlay">
+        <div class="modal-box">
+            <span class="modal-close" onclick="tutupPopup()">✖️</span>
+            <h3 class="modal-title">⚠️ Deadline Sangat Dekat!</h3>
+            <p style="font-size: 13px; color:#555;">Tugas berikut belum selesai dan deadlinenya tinggal 3 hari atau kurang:</p>
+            <div id="kontenPopup"></div>
+        </div>
+    </div>
 
     <div class="container">
         <h2>📚 My Class Manager</h2>
@@ -245,6 +365,14 @@
                 <option value="Semester 8">Semester 8</option>
             </select>
         </div>
+
+        <div class="task-dashboard">
+            <div class="task-dashboard-header" onclick="toggleTaskDashboard(this)">
+                <span>📝 Ringkasan Tugas Aktif (<span id="namaSemAktif">Semester 2</span>)</span>
+                <span id="panahTask">▲</span>
+            </div>
+            <div id="daftarTugasOtomatis" class="task-list"></div>
+        </div>
         
         <div class="form-group">
             <input type="text" id="inputMatkul" placeholder="Masukkan Nama Matkul Baru (Misal: Alpro)...">
@@ -259,7 +387,6 @@
         let dataAplikasi = [];
         let semesterAktif = "Semester 2";
 
-        // Fungsi Load Data Awal saat Web Dibuka
         window.onload = function() {
             const dataLokal = localStorage.getItem('classManagerData');
             const semLokal = localStorage.getItem('classManagerActiveSemester');
@@ -270,22 +397,20 @@
                 document.getElementById('selectSemester').value = semesterAktif;
             }
             renderTampilan();
+            cekDeadlineOtomatisPopup();
         };
 
-        // Fungsi Simpan Data ke Penyimpanan Lokal Browser
         function simpanKeStorage() {
             localStorage.setItem('classManagerData', JSON.stringify(dataAplikasi));
             localStorage.setItem('classManagerActiveSemester', semesterAktif);
         }
 
-        // Fungsi Ganti Semester di Dropdown
         function gantiSemester() {
             semesterAktif = document.getElementById('selectSemester').value;
             simpanKeStorage();
             renderTampilan();
         }
 
-        // Fungsi Tambah Folder Matkul Baru
         function tambahMatkul() {
             const input = document.getElementById('inputMatkul');
             const namaMatkul = input.value.trim();
@@ -308,7 +433,6 @@
             input.value = "";
         }
 
-        // Fungsi Tambah Pertemuan Kuliah
         function tambahPertemuan(matkulId) {
             const nomorPrt = prompt("Pertemuan ke berapa? (Contoh: 3)");
             if (!nomorPrt) return;
@@ -316,10 +440,16 @@
             const materi = prompt("Materinya apa? (Contoh: Sorting Bubble)");
             if (!materi) return;
 
-            const hariTgl = prompt("Hari / Tanggal? (Contoh: Senin, 5 Juni)");
+            const hariTgl = prompt("Hari / Tanggal Kelas? (Contoh: Senin, 5 Juni)");
             if (!hariTgl) return;
 
             const tugas = prompt("Tugasnya apa? (Kosongkan jika tidak ada)");
+            
+            let deadline = null;
+            if (tugas) {
+                deadline = prompt("Masukkan Tanggal Deadline Tugas!\nFormat WAJIB: YYYY-MM-DD (Contoh: 2026-06-28)");
+            }
+
             const catatan = prompt("Ketik catatan biasa ATAU Paste Link Google Drive file PPT/PDF:");
 
             const matkul = dataAplikasi.find(m => m.id === matkulId);
@@ -331,6 +461,7 @@
                     materi: materi,
                     tanggal: hariTgl,
                     tugas: tugas || null,
+                    tugasDeadline: deadline || null,
                     tugasSelesai: false,
                     catatan: catatan || null
                 });
@@ -341,7 +472,6 @@
             }
         }
 
-        // Fungsi Hapus Satu Pertemuan Tertentu
         function hapusPertemuan(matkulId, pertemuanId) {
             if (confirm("Apakah kamu yakin ingin menghapus data pertemuan ini?")) {
                 const matkul = dataAplikasi.find(m => m.id === matkulId);
@@ -354,7 +484,6 @@
             }
         }
 
-        // Fungsi Edit Data Pertemuan
         function editPertemuan(matkulId, pertemuanId) {
             const matkul = dataAplikasi.find(m => m.id === matkulId);
             if (!matkul) return;
@@ -365,15 +494,24 @@
             const materiBaru = prompt("Edit Materi:", prt.materi);
             if (materiBaru === null) return;
 
-            const tglBaru = prompt("Edit Hari/Tanggal:", prt.tanggal);
+            const tglBaru = prompt("Edit Hari/Tanggal Kelas:", prt.tanggal);
             if (tglBaru === null) return;
 
             const tugasBaru = prompt("Edit Tugas:", prt.tugas || "");
+            
+            let deadlineBaru = prt.tugasDeadline;
+            if(tugasBaru) {
+                deadlineBaru = prompt("Edit Tanggal Deadline Tugas (YYYY-MM-DD):", prt.tugasDeadline || "");
+            } else {
+                deadlineBaru = null;
+            }
+
             const catatanBaru = prompt("Edit Catatan/Link Google Drive:", prt.catatan || "");
 
             prt.materi = materiBaru;
             prt.tanggal = tglBaru;
             prt.tugas = tugasBaru || null;
+            prt.tugasDeadline = deadlineBaru || null;
             prt.catatan = catatanBaru || null;
 
             simpanKeStorage();
@@ -381,21 +519,18 @@
             bukaFolderOtomatis(matkulId);
         }
 
-        // Fungsi Checklist Tugas Selesai
-        function ubahStatusTugas(matkulId, pertemuanId, checkbox) {
+        function ubahStatusTugas(matkulId, pertemuanId, statusMinta) {
             const matkul = dataAplikasi.find(m => m.id === matkulId);
             if (matkul) {
                 const prt = matkul.pertemuan.find(p => p.id === pertemuanId);
                 if (prt) {
-                    prt.tugasSelesai = checkbox.checked;
+                    prt.tugasSelesai = statusMinta;
                     simpanKeStorage();
-                    const teksTugas = checkbox.nextElementSibling;
-                    teksTugas.className = checkbox.checked ? 'done' : '';
+                    renderTampilan();
                 }
             }
         }
 
-        // Fungsi Hapus Satu Folder Matkul Utuh
         function hapusMatkul(matkulId) {
             if (confirm("Apakah kamu yakin ingin menghapus folder matkul ini beserta seluruh isinya?")) {
                 dataAplikasi = dataAplikasi.filter(m => m.id !== matkulId);
@@ -404,7 +539,20 @@
             }
         }
 
-        // Fungsi Efek Roll Naik/Turun (Accordion)
+        // PERBAIKAN POIN 1: Fungsi Buka-Tutup Fitur Tugas Atas
+        function toggleTaskDashboard(headerElement) {
+            const listTugas = document.getElementById('daftarTugasOtomatis');
+            const panah = document.getElementById('panahTask');
+            
+            if (listTugas.style.display === "none") {
+                listTugas.style.display = "block";
+                panah.innerText = "▲";
+            } else {
+                listTugas.style.display = "none";
+                panah.innerText = "▼";
+            }
+        }
+
         function toggleRollDown(headerElement) {
             const listPertemuan = headerElement.nextElementSibling;
             const panah = headerElement.querySelector('span');
@@ -418,7 +566,6 @@
             }
         }
 
-        // Fungsi Helper untuk Otomatis Membuka Folder setelah Data Diupdate
         function bukaFolderOtomatis(matkulId) {
             const header = document.querySelector(`[data-id="${matkulId}"]`);
             if (header) {
@@ -429,12 +576,9 @@
             }
         }
 
-        // Fungsi Otomatis Format Teks Menjadi Tombol Link Jika Mengandung Link Internet/Drive
         function formatCatatanKeHTML(teksCatatan) {
             if (!teksCatatan) return "";
-
             const inputTrim = teksCatatan.trim();
-            // Mengecek apakah teks berupa link web (http/https) atau jalur lokal komputer (C:/ atau D:/)
             if (inputTrim.startsWith("http://") || inputTrim.startsWith("https://") || inputTrim.match(/^[a-zA-Z]:\/+/)) {
                 return `
                     <div class="catatan-box">
@@ -443,21 +587,118 @@
                     </div>
                 `;
             }
-
-            // Jika hanya tulisan biasa
-            return `
-                <div class="catatan-box">
-                    📌 <strong>Catatan:</strong> ${teksCatatan}
-                </div>
-            `;
+            return `<div class="catatan-box">📌 <strong>Catatan:</strong> ${teksCatatan}</div>`;
         }
 
-        // Fungsi Mengubah Struktur Data Menjadi Tampilan Visual HTML
+        // PERBAIKAN POIN 2: Hanya ambil tugas yang BELUM selesai untuk list atas
+        function dapatkanSemuaTugasHanyaSemesterAktif() {
+            let kumpulanTugas = [];
+            const matkulTerfilter = dataAplikasi.filter(m => m.semester === semesterAktif);
+
+            matkulTerfilter.forEach(matkul => {
+                matkul.pertemuan.forEach(prt => {
+                    // Hanya memasukkan tugas jika ada teks tugasnya dan BELUM DICENTANG SELESAI
+                    if (prt.tugas && !prt.tugasSelesai) {
+                        kumpulanTugas.push({
+                            matkulId: matkul.id,
+                            pertemuanId: prt.id,
+                            namaMatkul: matkul.nama,
+                            pertemuanKe: prt.nomor,
+                            tugasNama: prt.tugas,
+                            deadline: prt.tugasDeadline,
+                            selesai: prt.tugasSelesai
+                        });
+                    }
+                });
+            });
+
+            kumpulanTugas.sort((a, b) => {
+                if (!a.deadline) return 1;
+                if (!b.deadline) return -1;
+                return new Date(a.deadline) - new Date(b.deadline);
+            });
+
+            return kumpulanTugas;
+        }
+
+        // PERBAIKAN POIN 3: Peringatan popup diatur tepat ke <= 3 hari
+        function cekDeadlineOtomatisPopup() {
+            const hariIni = new Date();
+            hariIni.setHours(0,0,0,0);
+            
+            let kontenHtml = "";
+
+            dataAplikasi.forEach(matkul => {
+                matkul.pertemuan.forEach(prt => {
+                    if (prt.tugas && !prt.tugasSelesai && prt.tugasDeadline) {
+                        const tglDeadline = new Date(prt.tugasDeadline);
+                        tglDeadline.setHours(0,0,0,0);
+                        
+                        const selisihWaktu = tglDeadline.getTime() - hariIni.getTime();
+                        const selisihHari = Math.ceil(selisihWaktu / (1000 * 3600 * 24));
+
+                        // HANYA dipicu jika deadline berkisar 3 hari kebawah (3, 2, 1, 0 hari atau telat)
+                        if (selisihHari <= 3) {
+                            let infoHari = selisihHari < 0 ? `TERLAMBAT (${Math.abs(selisihHari)} hari)` : `${selisihHari} hari lagi!`;
+                            if(selisihHari === 0) infoHari = "HARI INI DEADLINE!";
+
+                            kontenHtml += `
+                                <div class="modal-item">
+                                    <strong>[${matkul.nama}]</strong> Pertemuan ${prt.nomor}<br>
+                                    📝 Tugas: ${prt.tugas}<br>
+                                    📅 Deadline: <span style="color:red; font-weight:bold;">${prt.tugasDeadline} (${infoHari})</span>
+                                </div>
+                            `;
+                        }
+                    }
+                });
+            });
+
+            if (kontenHtml !== "") {
+                document.getElementById('kontenPopup').innerHTML = kontenHtml;
+                document.getElementById('popupDeadline').style.display = "flex";
+            }
+        }
+
+        function tutupPopup() {
+            document.getElementById('popupDeadline').style.display = "none";
+        }
+
         function renderTampilan() {
+            document.getElementById('namaSemAktif').innerText = semesterAktif;
+
+            // RENDER RINGKASAN TUGAS ATAS
+            const containerTugas = document.getElementById('daftarTugasOtomatis');
+            containerTugas.innerHTML = "";
+            
+            const listTugasTerurut = dapatkanSemuaTugasHanyaSemesterAktif();
+
+            if (listTugasTerurut.length === 0) {
+                containerTugas.innerHTML = `<p style="color: #aaa; font-size:12px; margin:0; text-align:center;">🎉 Bersih! Tidak ada tugas aktif terbeban di semester ini.</p>`;
+            } else {
+                listTugasTerurut.forEach(tg => {
+                    const deadlineTeks = tg.deadline ? `📅 Deadline: ${tg.deadline}` : "📅 Deadline: Tidak Diatur";
+                    const taskItem = document.createElement('div');
+                    taskItem.className = 'task-item';
+                    
+                    taskItem.innerHTML = `
+                        <div class="task-info">
+                            <span style="font-weight:bold; color:#2c3e50;">${tg.tugasNama}</span>
+                            <span style="font-size:11px; color:#7f8c8d;">Matkul: ${tg.namaMatkul} (Prt ${tg.pertemuanKe})</span>
+                            <span class="task-deadline">${deadlineTeks}</span>
+                        </div>
+                        <div>
+                            <input type="checkbox" onchange="ubahStatusTugas(${tg.matkulId}, ${tg.pertemuanId}, this.checked)">
+                        </div>
+                    `;
+                    containerTugas.appendChild(taskItem);
+                });
+            }
+
+            // RENDER FOLDER MATKUL DAN PERTEMUAN (BAWAH)
             const daftarMatkulContainer = document.getElementById('daftarMatkul');
             daftarMatkulContainer.innerHTML = ""; 
 
-            // Mem-filter matkul: hanya tampilkan yang sesuai dengan semester terpilih
             const matkulTerfilter = dataAplikasi.filter(m => m.semester === semesterAktif);
 
             matkulTerfilter.forEach(matkul => {
@@ -468,10 +709,14 @@
                 matkul.pertemuan.forEach(prt => {
                     let tugasHTML = "";
                     if (prt.tugas) {
+                        const cetakDeadline = prt.tugasDeadline ? `<br><small style="color:#c0392b;">⏰ Deadline: ${prt.tugasDeadline}</small>` : "";
                         tugasHTML = `
                             <div class="tugas-box">
-                                <input type="checkbox" ${prt.tugasSelesai ? 'checked' : ''} onchange="ubahStatusTugas(${matkul.id}, ${prt.id}, this)">
-                                <span class="${prt.tugasSelesai ? 'done' : ''}"><strong>Tugas:</strong> ${prt.tugas}</span>
+                                <div class="tugas-row">
+                                    <input type="checkbox" ${prt.tugasSelesai ? 'checked' : ''} onchange="ubahStatusTugas(${matkul.id}, ${prt.id}, this.checked)">
+                                    <span class="${prt.tugasSelesai ? 'done' : ''}"><strong>Tugas:</strong> ${prt.tugas}</span>
+                                </div>
+                                ${cetakDeadline}
                             </div>
                         `;
                     }
