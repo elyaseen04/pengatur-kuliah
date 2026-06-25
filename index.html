@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manajemen Tugas Kuliahkuuu</title>
     <style>
-        /* --- CSS STYLING ASLI --- */
+        /* --- CSS STYLING UTAMA --- */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f4f6f9;
@@ -29,13 +29,28 @@
             margin-bottom: 5px;
         }
 
+        /* BARU: Barisan Tombol Backup & Restore */
+        .backup-zone {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .btn-backup {
+            background-color: #7f8c8d;
+            font-size: 11px;
+            padding: 6px 10px;
+            flex: 1;
+        }
+        .btn-backup:hover { background-color: #616a6b; }
+
         /* Styling Pilihan Semester */
         .semester-selector-box {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            margin-bottom: 25px;
+            margin-bottom: 15px;
             background: #f8f9fa;
             padding: 10px;
             border-radius: 8px;
@@ -55,6 +70,19 @@
             border: 2px solid #3498db;
             color: #2c3e50;
             cursor: pointer;
+        }
+
+        /* BARU: Search Bar (Kolom Pencarian) */
+        .search-box {
+            display: flex;
+            margin-bottom: 15px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #3498db;
+            border-radius: 5px;
+            font-size: 14px;
         }
 
         /* STYLING DASHBOARD TUGAS */
@@ -119,7 +147,7 @@
             margin-bottom: 20px;
         }
 
-        input[type="text"], input[type="date"] {
+        input[type="text"], input[type="date"], input[type="file"] {
             flex: 1;
             padding: 10px;
             border: 1px solid #ccc;
@@ -138,9 +166,7 @@
             font-weight: bold;
         }
 
-        button:hover {
-            background-color: #2980b9;
-        }
+        button:hover { background-color: #2980b9; }
 
         /* Struktur Card Folder Matkul */
         .matkul-card {
@@ -180,20 +206,14 @@
             font-size: 12px;
             padding: 5px 10px;
         }
-
-        .btn-add-sub:hover {
-            background-color: #27ae60;
-        }
+        .btn-add-sub:hover { background-color: #27ae60; }
 
         .btn-delete {
             background-color: #e74c3c;
             font-size: 11px;
             padding: 4px 8px;
         }
-
-        .btn-delete:hover {
-            background-color: #c0392b;
-        }
+        .btn-delete:hover { background-color: #c0392b; }
 
         /* Detail Isi Pertemuan */
         .pertemuan-item {
@@ -227,7 +247,6 @@
             cursor: pointer;
             color: white;
         }
-
         .btn-mini-edit { background-color: #f39c12; }
         .btn-mini-edit:hover { background-color: #d35400; }
         .btn-mini-del { background-color: #e74c3c; }
@@ -260,6 +279,7 @@
             color: #95a5a6;
         }
 
+        /* LAMPIRAN MEDIA */
         .catatan-box {
             font-size: 13px;
             background: #f9f9f9;
@@ -269,7 +289,22 @@
             border-radius: 0 4px 4px 0;
         }
 
-        /* Styling Tombol Link File Google Drive */
+        .lampiran-box {
+            margin-top: 8px;
+            background: #f0f7ff;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px dashed #3498db;
+        }
+
+        .lampiran-preview-img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 4px;
+            margin-top: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
         .file-link {
             display: inline-block;
             margin-top: 5px;
@@ -282,13 +317,9 @@
             font-size: 12px;
             border: 1px solid #b3e5fc;
         }
+        .file-link:hover { background-color: #b3e5fc; color: #01579b; }
 
-        .file-link:hover {
-            background-color: #b3e5fc;
-            color: #01579b;
-        }
-
-        /* MODAL POPUP GLOBAL */
+        /* MODAL POPUP */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -303,11 +334,13 @@
             background: white;
             padding: 20px;
             border-radius: 8px;
-            max-width: 400px;
+            max-width: 450px;
             width: 90%;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             position: relative;
             border-top: 6px solid #e74c3c;
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .modal-close {
@@ -318,8 +351,8 @@
             color: #aaa;
             user-select: none;
         }
-
         .modal-close:hover { color: #333; }
+        
         .modal-title {
             color: #c0392b;
             margin-top: 0;
@@ -337,7 +370,6 @@
             border-left: 3px solid #e74c3c;
         }
 
-        /* FORM INPUT/EDIT DATA PERTEMUAN DENGAN KALENDER */
         .modal-form-group {
             margin-bottom: 12px;
             display: flex;
@@ -363,7 +395,7 @@
         <div class="modal-box">
             <span class="modal-close" onclick="tutupPopup()">✖️</span>
             <h3 class="modal-title">⚠️ Deadline Sangat Dekat!</h3>
-            <p style="font-size: 13px; color:#555;">Tugas berikut belum selesai dan deadlinenya tinggal 3 days atau kurang:</p>
+            <p style="font-size: 13px; color:#555;">Tugas berikut belum selesai dan deadlinenya tinggal 3 hari atau kurang:</p>
             <div id="kontenPopup"></div>
         </div>
     </div>
@@ -401,8 +433,17 @@
             </div>
             
             <div class="modal-form-group">
-                <label for="formCatatan">Catatan / Link Google Drive</label>
-                <input type="text" id="formCatatan" placeholder="Tulis catatan atau paste link materi">
+                <label for="formCatatan">Catatan Teks Biasa / Link Drive</label>
+                <input type="text" id="formCatatan" placeholder="Tulis catatan penting...">
+            </div>
+
+            <div class="modal-form-group" style="background: #f8f9fa; padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
+                <label for="formFileMedia" style="color:#2980b9;">📷 Upload Lampiran (Foto Catatan / File Modul Bebas Ukuran)</label>
+                <input type="file" id="formFileMedia" accept="image/*, application/pdf, .doc, .docx, .ppt, .pptx" onchange="prosesInputFile()">
+                <div id="filePreviewStatus" style="font-size: 11px; margin-top:5px; color:#27ae60; font-weight:bold;"></div>
+                <input type="hidden" id="formFileDataBase64">
+                <input type="hidden" id="formFileName">
+                <input type="hidden" id="formFileType">
             </div>
 
             <div class="modal-form-actions">
@@ -415,6 +456,12 @@
     <div class="container">
         <h2>📚 My Class Manager</h2>
         
+        <div class="backup-zone">
+            <button class="btn-backup" onclick="eksporDataJSON()">📥 Backup Data (.json)</button>
+            <button class="btn-backup" style="background-color: #34495e;" onclick="document.getElementById('inputFileImport').click()">📤 Restore Data</button>
+            <input type="file" id="inputFileImport" accept=".json" style="display:none;" onchange="imporDataJSON(this)">
+        </div>
+
         <div class="semester-selector-box">
             <label for="selectSemester">Pilih Periode:</label>
             <select id="selectSemester" class="semester-select" onchange="gantiSemester()">
@@ -427,6 +474,10 @@
                 <option value="Semester 7">Semester 7</option>
                 <option value="Semester 8">Semester 8</option>
             </select>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="searchBar" class="search-input" placeholder="🔍 Cari nama materi kuliah atau tugas di sini..." oninput="renderTampilan()">
         </div>
 
         <div class="task-dashboard">
@@ -446,31 +497,62 @@
     </div>
 
     <script>
-        // --- JAVASCRIPT LOGIC ---
+        // --- INTEGRASI INDEXEDDB CORE ---
+        let db;
         let dataAplikasi = [];
         let semesterAktif = "Semester 2";
 
-        window.onload = function() {
-            const dataLokal = localStorage.getItem('classManagerData');
+        const requestDB = indexedDB.open("ClassManagerIndexedDB", 1);
+
+        requestDB.onerror = function(event) {
+            alert("Database IndexedDB gagal dimuat!");
+        };
+
+        requestDB.onsuccess = function(event) {
+            db = event.target.result;
+            // Ambil data semester aktif dari localStorage dulu
             const semLokal = localStorage.getItem('classManagerActiveSemester');
-            
-            if (dataLokal) dataAplikasi = JSON.parse(dataLokal);
             if (semLokal) {
                 semesterAktif = semLokal;
                 document.getElementById('selectSemester').value = semesterAktif;
             }
-            renderTampilan();
-            cekDeadlineOtomatisPopup();
+            muatDataDariIndexedDB();
         };
 
-        function simpanKeStorage() {
-            localStorage.setItem('classManagerData', JSON.stringify(dataAplikasi));
-            localStorage.setItem('classManagerActiveSemester', semesterAktif);
+        requestDB.onupgradeneeded = function(event) {
+            let database = event.target.result;
+            if (!database.objectStoreNames.contains("appData")) {
+                database.createObjectStore("appData", { keyPath: "id" });
+            }
+        };
+
+        function muatDataDariIndexedDB() {
+            const transaction = db.transaction(["appData"], "readonly");
+            const objectStore = transaction.objectStore(transaction.objectStoreNames[0]);
+            const request = objectStore.getAll();
+
+            request.onsuccess = function(event) {
+                dataAplikasi = event.target.result || [];
+                renderTampilan();
+                cekDeadlineOtomatisPopup();
+            };
+        }
+
+        function simpanKeIndexedDB(itemMatkul) {
+            const transaction = db.transaction(["appData"], "readwrite");
+            const objectStore = transaction.objectStore("appData");
+            objectStore.put(itemMatkul);
+        }
+
+        function hapusDariIndexedDB(idMatkul) {
+            const transaction = db.transaction(["appData"], "readwrite");
+            const objectStore = transaction.objectStore("appData");
+            objectStore.delete(idMatkul);
         }
 
         function gantiSemester() {
             semesterAktif = document.getElementById('selectSemester').value;
-            simpanKeStorage();
+            localStorage.setItem('classManagerActiveSemester', semesterAktif);
             renderTampilan();
         }
 
@@ -491,9 +573,27 @@
             };
 
             dataAplikasi.push(objekMatkulBaru);
-            simpanKeStorage();
+            simpanKeIndexedDB(objekMatkulBaru);
             renderTampilan();
             input.value = "";
+        }
+
+        function prosesInputFile() {
+            const fileInput = document.getElementById('formFileMedia');
+            const statusTeks = document.getElementById('filePreviewStatus');
+            if (fileInput.files.length === 0) return;
+
+            const file = fileInput.files[0];
+            statusTeks.innerText = "⏳ Memproses file ke database...";
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById('formFileDataBase64').value = e.target.result;
+                document.getElementById('formFileName').value = file.name;
+                document.getElementById('formFileType').value = file.type;
+                statusTeks.innerText = `✅ Terlampir: ${file.name}`;
+            };
+            reader.readAsDataURL(file);
         }
 
         function bukaModalTambahPertemuan(matkulId) {
@@ -508,6 +608,12 @@
             document.getElementById('formDeadline').value = "";
             document.getElementById('groupFormDeadline').style.display = "none";
             document.getElementById('formCatatan').value = "";
+            
+            document.getElementById('formFileMedia').value = "";
+            document.getElementById('filePreviewStatus').innerText = "";
+            document.getElementById('formFileDataBase64').value = "";
+            document.getElementById('formFileName').value = "";
+            document.getElementById('formFileType').value = "";
 
             document.getElementById('modalFormPertemuan').style.display = "flex";
         }
@@ -528,6 +634,19 @@
             document.getElementById('formTugas').value = prt.tugas || "";
             document.getElementById('formDeadline').value = prt.tugasDeadline || "";
             document.getElementById('formCatatan').value = prt.catatan || "";
+
+            document.getElementById('formFileMedia').value = "";
+            if (prt.fileMediaBase64) {
+                document.getElementById('filePreviewStatus').innerText = `✅ File Tersimpan: ${prt.fileNama || 'Lampiran'}`;
+                document.getElementById('formFileDataBase64').value = prt.fileMediaBase64;
+                document.getElementById('formFileName').value = prt.fileNama || "";
+                document.getElementById('formFileType').value = prt.fileType || "";
+            } else {
+                document.getElementById('filePreviewStatus').innerText = "";
+                document.getElementById('formFileDataBase64').value = "";
+                document.getElementById('formFileName').value = "";
+                document.getElementById('formFileType').value = "";
+            }
 
             toggleFormDeadline();
             document.getElementById('modalFormPertemuan').style.display = "flex";
@@ -554,13 +673,17 @@
 
             const nomor = document.getElementById('formNomor').value.trim();
             const materi = document.getElementById('formMateri').value.trim();
-            const tanggal = document.getElementById('formTanggalKelas').value; // Mengambil string tanggal YYYY-MM-DD
+            const tanggal = document.getElementById('formTanggalKelas').value; 
             const tugas = document.getElementById('formTugas').value.trim();
             const deadline = document.getElementById('formDeadline').value;
             const catatan = document.getElementById('formCatatan').value.trim();
+            
+            const fileBase64 = document.getElementById('formFileDataBase64').value;
+            const fileNama = document.getElementById('formFileName').value;
+            const fileType = document.getElementById('formFileType').value;
 
             if (!nomor || !materi || !tanggal) {
-                alert("Kolom Pertemuan, Materi, dan Tanggal Kelas wajib diisi lewat kalender!");
+                alert("Kolom Pertemuan, Materi, dan Tanggal Kelas wajib diisi!");
                 return;
             }
 
@@ -576,7 +699,10 @@
                     tugas: tugas || null,
                     tugasDeadline: deadline || null,
                     tugasSelesai: false,
-                    catatan: catatan || null
+                    catatan: catatan || null,
+                    fileMediaBase64: fileBase64 || null,
+                    fileNama: fileNama || null,
+                    fileType: fileType || null
                 });
             } else {
                 const prt = matkul.pertemuan.find(p => p.id === parseInt(pertemuanId));
@@ -587,10 +713,13 @@
                     prt.tugas = tugas || null;
                     prt.tugasDeadline = (tugas) ? deadline || null : null;
                     prt.catatan = catatan || null;
+                    prt.fileMediaBase64 = fileBase64 || null;
+                    prt.fileNama = fileNama || null;
+                    prt.fileType = fileType || null;
                 }
             }
 
-            simpanKeStorage();
+            simpanKeIndexedDB(matkul);
             renderTampilan();
             bukaFolderOtomatis(matkulId);
             tutupModalForm();
@@ -601,7 +730,7 @@
                 const matkul = dataAplikasi.find(m => m.id === matkulId);
                 if (matkul) {
                     matkul.pertemuan = matkul.pertemuan.filter(p => p.id !== pertemuanId);
-                    simpanKeStorage();
+                    simpanKeIndexedDB(matkul);
                     renderTampilan();
                     bukaFolderOtomatis(matkulId);
                 }
@@ -614,7 +743,7 @@
                 const prt = matkul.pertemuan.find(p => p.id === pertemuanId);
                 if (prt) {
                     prt.tugasSelesai = statusMinta;
-                    simpanKeStorage();
+                    simpanKeIndexedDB(matkul);
                     renderTampilan();
                 }
             }
@@ -623,15 +752,58 @@
         function hapusMatkul(matkulId) {
             if (confirm("Apakah kamu yakin ingin menghapus folder matkul ini beserta seluruh isinya?")) {
                 dataAplikasi = dataAplikasi.filter(m => m.id !== matkulId);
-                simpanKeStorage();
+                hapusDariIndexedDB(matkulId);
                 renderTampilan();
             }
+        }
+
+        // FITUR NO 1: EKSPOR DATA KE FILE JSON (BACKUP)
+        function eksporDataJSON() {
+            if (dataAplikasi.length === 0) {
+                alert("Data masih kosong, tidak ada yang bisa dibackup.");
+                return;
+            }
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataAplikasi));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", `Backup_ClassManager_${semesterAktif.replace(" ","")}.json`);
+            dlAnchorElem.click();
+        }
+
+        // FITUR NO 1: IMPOR DATA DARI FILE JSON (RESTORE)
+        function imporDataJSON(inputContext) {
+            const file = inputContext.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const dataImpor = JSON.parse(e.target.result);
+                    if (Array.isArray(dataImpor)) {
+                        // Bersihkan database lama lalu simpan satu per satu
+                        const transaction = db.transaction(["appData"], "readwrite");
+                        const objectStore = transaction.objectStore("appData");
+                        objectStore.clear();
+
+                        dataImpor.forEach(item => {
+                            objectStore.put(item);
+                        });
+
+                        alert("✅ Data Berhasil Direstore Sempurna! Aplikasi akan merefresh halaman.");
+                        window.location.reload();
+                    } else {
+                        alert("Format backup file .json tidak valid!");
+                    }
+                } catch (err) {
+                    alert("Gagal membaca file backup JSON!");
+                }
+            };
+            reader.readAsText(file);
         }
 
         function toggleTaskDashboard(headerElement) {
             const listTugas = document.getElementById('daftarTugasOtomatis');
             const panah = document.getElementById('panahTask');
-            
             if (listTugas.style.display === "none") {
                 listTugas.style.display = "block";
                 panah.innerText = "▲";
@@ -644,7 +816,6 @@
         function toggleRollDown(headerElement) {
             const listPertemuan = headerElement.nextElementSibling;
             const panah = headerElement.querySelector('span');
-            
             if (listPertemuan.style.display === "block") {
                 listPertemuan.style.display = "none";
                 panah.innerText = "▼";
@@ -671,11 +842,31 @@
                 return `
                     <div class="catatan-box">
                         📌 <strong>Aset Materi Kuliah:</strong> <br>
-                        <a href="${inputTrim}" target="_blank" class="file-link">📁 Buka / Download File</a>
+                        <a href="${inputTrim}" target="_blank" class="file-link">📁 Buka / Download Link</a>
                     </div>
                 `;
             }
             return `<div class="catatan-box">📌 <strong>Catatan:</strong> ${teksCatatan}</div>`;
+        }
+
+        function formatLampiranKeHTML(prt) {
+            if (!prt.fileMediaBase64) return "";
+            if (prt.fileType && prt.fileType.startsWith('image/')) {
+                return `
+                    <div class="lampiran-box">
+                        🖼️ <strong>Foto Catatan/Materi:</strong><br>
+                        <a href="${prt.fileMediaBase64}" target="_blank">
+                            <img src="${prt.fileMediaBase64}" class="lampiran-preview-img" title="Klik untuk memperbesar">
+                        </a>
+                    </div>
+                `;
+            } 
+            return `
+                <div class="lampiran-box">
+                    📄 <strong>File Dokumen Modul:</strong> ${prt.fileNama || 'Unduh Materi'}<br>
+                    <a href="${prt.fileMediaBase64}" download="${prt.fileNama || 'materi'}" class="file-link" style="background-color: #e8f8f5; color: #117a65; border-color: #a3e4d7;">💾 Download Dokumen Modul</a>
+                </div>
+            `;
         }
 
         function dapatkanSemuaTugasHanyaSemesterAktif() {
@@ -710,7 +901,6 @@
         function cekDeadlineOtomatisPopup() {
             const hariIni = new Date();
             hariIni.setHours(0,0,0,0);
-            
             let kontenHtml = "";
 
             dataAplikasi.forEach(matkul => {
@@ -748,8 +938,10 @@
             document.getElementById('popupDeadline').style.display = "none";
         }
 
+        // TAMPILAN UTAMA DENGAN SEARCH BAR
         function renderTampilan() {
             document.getElementById('namaSemAktif').innerText = semesterAktif;
+            const keywordCari = document.getElementById('searchBar').value.toLowerCase().trim();
 
             // RENDER RINGKASAN TUGAS ATAS
             const containerTugas = document.getElementById('daftarTugasOtomatis');
@@ -779,18 +971,31 @@
                 });
             }
 
-            // RENDER FOLDER MATKUL DAN PERTEMUAN (BAWAH)
+            // RENDER FOLDER MATKUL DAN PERTEMUAN (DENGAN FILTER PENCARIAN)
             const daftarMatkulContainer = document.getElementById('daftarMatkul');
             daftarMatkulContainer.innerHTML = ""; 
 
             const matkulTerfilter = dataAplikasi.filter(m => m.semester === semesterAktif);
 
             matkulTerfilter.forEach(matkul => {
-                const card = document.createElement('div');
-                card.className = 'matkul-card';
-
                 let infoPertemuanHTML = "";
+                let adaPertemuanMasukKriteria = false;
+
                 matkul.pertemuan.forEach(prt => {
+                    // Logika Filter Search Bar
+                    const namaMateri = prt.materi.toLowerCase();
+                    const namaTugas = prt.tugas ? prt.tugas.toLowerCase() : "";
+                    const namaMatkulKecil = matkul.nama.toLowerCase();
+
+                    // Jika user mencari sesuatu, pastikan datanya cocok
+                    if (keywordCari !== "") {
+                        if (!namaMateri.includes(keywordCari) && !namaTugas.includes(keywordCari) && !namaMatkulKecil.includes(keywordCari)) {
+                            return; // Skip jika tidak cocok keyword
+                        }
+                    }
+
+                    adaPertemuanMasukKriteria = true;
+
                     let tugasHTML = "";
                     if (prt.tugas) {
                         const cetakDeadline = prt.tugasDeadline ? `<br><small style="color:#c0392b;">⏰ Deadline: ${prt.tugasDeadline}</small>` : "";
@@ -806,6 +1011,7 @@
                     }
 
                     let catatanHTML = formatCatatanKeHTML(prt.catatan);
+                    let lampiranHTML = formatLampiranKeHTML(prt);
 
                     infoPertemuanHTML += `
                         <div class="pertemuan-item">
@@ -819,15 +1025,23 @@
                             <div class="meta-info">📅 ${prt.tanggal}</div>
                             ${tugasHTML}
                             ${catatanHTML}
+                            ${lampiranHTML}
                         </div>
                     `;
                 });
 
+                // Jika sedang searching, dan tidak ada pertemuan yang cocok di matkul ini, matkul ini disembunyikan
+                if (keywordCari !== "" && !adaPertemuanMasukKriteria) {
+                    return;
+                }
+
+                const card = document.createElement('div');
+                card.className = 'matkul-card';
                 card.innerHTML = `
                     <div class="matkul-header" data-id="${matkul.id}" onclick="toggleRollDown(this)">
                         📁 ${matkul.nama} <span>▼</span>
                     </div>
-                    <div class="pertemuan-list">
+                    <div class="pertemuan-list" style="${keywordCari !== '' ? 'display:block;' : ''}">
                         <div class="action-header">
                             <button class="btn-add-sub" onclick="bukaModalTambahPertemuan(${matkul.id})">+ Tambah Pertemuan</button>
                             <button class="btn-delete" onclick="hapusMatkul(${matkul.id})">Hapus Folder Matkul</button>
